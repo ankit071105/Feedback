@@ -416,6 +416,10 @@ input[type=hidden] { display: none; }
           </div>
         </div>
         <div class="fg">
+          <label>Company Name <span class="req-dot">*</span></label>
+          <input type="text" name="Company" id="f-company" placeholder="e.g. Tata Consultancy Services" autocomplete="organization">
+        </div>
+        <div class="fg">
           <label>Work Email <span class="opt-note">(optional — used as reply-to)</span></label>
           <input type="email" name="email" id="f-email" placeholder="priya@company.com" autocomplete="email">
         </div>
@@ -678,14 +682,16 @@ document.addEventListener('DOMContentLoaded', function () {
   form.addEventListener('submit', function(e) {
     e.preventDefault(); // we handle manually below
 
-    const name = document.getElementById('f-name').value.trim();
-    const role = document.getElementById('f-role').value.trim();
+    const name    = document.getElementById('f-name').value.trim();
+    const company = document.getElementById('f-company').value.trim();
+    const role    = document.getElementById('f-role').value.trim();
     const q2   = document.querySelector('input[name="Q2_Innovation"]:checked');
     const q4   = document.querySelector('input[name="Q4_Communication"]:checked');
 
     // Validate
-    if (!name)       { shake('f-name'); showToast('Please enter your full name', 'err'); return; }
-    if (!role)       { shake('f-role'); showToast('Please enter your designation', 'err'); return; }
+    if (!name)       { shake('f-name');    showToast('Please enter your full name', 'err'); return; }
+    if (!company)    { shake('f-company'); showToast('Please enter your company name', 'err'); return; }
+    if (!role)       { shake('f-role');    showToast('Please enter your designation', 'err'); return; }
     if (!ratings.q1) { showToast('Please rate the overall presentation — Q1 ⭐', 'err'); return; }
     if (!q2)         { showToast('Please select an option for Innovation — Q2', 'err'); return; }
     if (!ratings.q3) { showToast('Please rate the technical depth — Q3 ⭐', 'err'); return; }
@@ -737,6 +743,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const entry = {
       timestamp:   new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       name:        document.getElementById('f-name').value.trim(),
+      company:     document.getElementById('f-company').value.trim(),
       role:        document.getElementById('f-role').value.trim(),
       email:       document.getElementById('f-email').value.trim(),
       linkedin:    (document.querySelector('input[name="LinkedIn"]') || {}).value || '',
@@ -787,18 +794,18 @@ document.addEventListener('DOMContentLoaded', function () {
   window.downloadExcel = function() {
     if (!responses.length) { showToast('No local responses to export yet', 'err'); return; }
     const headers = [
-      'Timestamp','Name','Designation','Email',
+      'Timestamp','Name','Company','Designation','Email',
       'LinkedIn','Twitter/X','Instagram',
       'Q1 Overall','Q2 Innovation','Q3 Technical','Q4 Communication','Comments'
     ];
     const rows = responses.map(r => [
-      r.timestamp, r.name, r.role, r.email||'—',
+      r.timestamp, r.name, r.company||'—', r.role, r.email||'—',
       r.linkedin||'—', r.twitter||'—', r.instagram||'—',
       r.q1, r.q2, r.q3, r.q4, r.comments||'—'
     ]);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     ws['!cols'] = [
-      {wch:22},{wch:20},{wch:18},{wch:26},{wch:32},
+      {wch:22},{wch:20},{wch:26},{wch:18},{wch:26},{wch:32},
       {wch:16},{wch:16},{wch:12},{wch:24},{wch:12},{wch:22},{wch:40}
     ];
     const wb = XLSX.utils.book_new();

@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Feedback — Team Swift Relief & Team Codzen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --white:    #ffffff;
+  --off:      #f7f8fc;
+  --off2:     #eef0f7;
+  --navy:     #0f1f3d;
+  --navy2:    #1a3460;
+  --blue:     #1d4ed8;
+  --blue-lt:  #3b6ef5;
+  --blue-bg:  #eff4ff;
+  --slate:    #4a5578;
+  --slate-lt: #8892aa;
+  --line:     #e2e6f0;
+  --gold:     #c9972b;
+  --green:    #16a34a;
+  --green-bg: #f0fdf4;
+  --red:      #dc2626;
+  --red-bg:   #fef2f2;
+  --shadow-sm: 0 1px 3px rgba(15,31,61,.07), 0 1px 2px rgba(15,31,61,.04);
+  --shadow:    0 4px 16px rgba(15,31,61,.09), 0 1px 4px rgba(15,31,61,.05);
+  --shadow-lg: 0 12px 40px rgba(15,31,61,.12), 0 4px 12px rgba(15,31,61,.06);
+  --r: 10px; --r2: 6px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--off); color: var(--navy);
+  font-family: 'Figtree', sans-serif; font-size: 15px;
+  line-height: 1.6; min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(29,78,216,.06) 0%, transparent 60%);
+}
+.page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--navy); display: flex; align-items: center;
+  justify-content: space-between; padding: 0 28px; height: 54px; gap: 16px; flex-shrink: 0;
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.tdot { width: 8px; height: 8px; border-radius: 50%; }
+.tdot-b { background: #3b82f6; } .tdot-g { background: #c9972b; }
+.tlabel { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.45); }
+.chips { display: flex; gap: 8px; }
+.chip { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; }
+.chip-b { background: rgba(59,110,245,.25); color: #93b4ff; }
+.chip-g { background: rgba(201,151,43,.25); color: #f5c842; }
+
+/* ── HERO ── */
+.hero {
+  background: var(--navy); padding: 52px 28px 64px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 44px; background: var(--off); clip-path: ellipse(55% 100% at 50% 100%);
+}
+.hero-ring {
+  position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,.045);
+  top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.38); margin-bottom: 22px;
+}
+.hero-eyebrow span { display: block; width: 30px; height: 1px; background: rgba(255,255,255,.2); }
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(30px, 6.5vw, 46px); font-weight: 700;
+  color: #fff; line-height: 1.16; margin-bottom: 16px; letter-spacing: -.3px;
+}
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(90deg, #93b4ff 0%, #d4e0ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub {
+  color: rgba(255,255,255,.42); font-size: 15px; font-weight: 300;
+  max-width: 420px; margin: 0 auto; line-height: 1.8;
+}
+
+/* ── PROGRESS BAR ── */
+.prog-wrap {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--white); border-bottom: 1px solid var(--line); padding: 10px 20px;
+  box-shadow: 0 1px 4px rgba(15,31,61,.05);
+}
+.prog-inner { max-width: 700px; margin: 0 auto; }
+.prog-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.prog-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+.prog-pct { font-size: 11px; font-weight: 700; color: var(--blue); }
+.prog-track { height: 3px; background: var(--line); border-radius: 100px; overflow: hidden; }
+.prog-fill  {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--blue-lt));
+  border-radius: 100px; transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── MAIN ── */
+.main { flex: 1; max-width: 720px; margin: 0 auto; width: 100%; padding: 40px 18px 80px; }
+
+/* ── SECTION LABEL ── */
+.sec { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; margin-top: 36px; }
+.sec:first-child { margin-top: 0; }
+.sec-n {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--navy); color: #fff;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(15,31,61,.2);
+}
+.sec-t { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--slate); white-space: nowrap; }
+.sec-l { flex: 1; height: 1px; background: var(--line); }
+
+/* ── CARD ── */
+.card {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: var(--r); box-shadow: var(--shadow-sm);
+  padding: 28px 26px; margin-bottom: 14px;
+  transition: box-shadow .2s, border-color .2s;
+  animation: slideUp .4s ease both;
+}
+.card:hover { box-shadow: var(--shadow); border-color: #d0d8ee; }
+
+.card-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
+.card-title { font-family: 'Playfair Display', serif; font-size: 16.5px; font-weight: 600; line-height: 1.35; color: var(--navy); }
+.badge { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 11px; border-radius: 100px; flex-shrink: 0; margin-top: 2px; }
+.b-req { background: #fff0f0; color: var(--red);      border: 1px solid #fecaca; }
+.b-opt { background: var(--off2); color: var(--slate-lt); border: 1px solid var(--line); }
+.b-q   { background: var(--blue-bg); color: var(--blue); border: 1px solid #c7d7fd; }
+
+/* ── FORM FIELDS ── */
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:520px){ .row2 { grid-template-columns: 1fr; } }
+
+.fg { display: flex; flex-direction: column; gap: 7px; }
+.fg + .fg { margin-top: 16px; }
+.fg > label {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--slate); display: flex; align-items: center; gap: 6px;
+}
+.req-dot { color: var(--red); font-size: 15px; line-height: 1; }
+.opt-note { color: var(--slate-lt); font-size: 10.5px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+input[type=text],
+input[type=email],
+input[type=url],
+textarea {
+  width: 100%; background: var(--off);
+  border: 1.5px solid var(--line); border-radius: var(--r2);
+  color: var(--navy); font-family: 'Figtree', sans-serif;
+  font-size: 14.5px; font-weight: 400; padding: 12px 15px;
+  outline: none; transition: border-color .18s, background .18s, box-shadow .18s;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--blue); background: #fff;
+  box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+}
+input.shake { border-color: var(--red) !important; background: var(--red-bg) !important; }
+input::placeholder, textarea::placeholder { color: var(--slate-lt); font-weight: 300; font-size: 14px; }
+textarea { resize: vertical; min-height: 105px; line-height: 1.7; }
+
+/* hidden inputs for star values */
+input[type=hidden] { display: none; }
+
+/* ── SOCIAL ── */
+.soc-list { display: flex; flex-direction: column; gap: 10px; }
+.soc-row {
+  display: flex; align-items: stretch;
+  background: var(--off); border: 1.5px solid var(--line);
+  border-radius: var(--r2); overflow: hidden;
+  transition: border-color .18s, box-shadow .18s;
+}
+.soc-row:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+}
+.soc-pre {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; min-height: 48px;
+  background: var(--off2); border-right: 1.5px solid var(--line);
+  font-size: 12px; font-weight: 600; color: var(--slate);
+  white-space: nowrap; flex-shrink: 0;
+}
+.soc-pre svg { width: 15px; height: 15px; flex-shrink: 0; }
+.soc-row input[type=text] {
+  border: none !important; background: transparent !important;
+  border-radius: 0 !important; padding: 12px 14px !important;
+  flex: 1; min-width: 0; box-shadow: none !important;
+}
+
+/* ── STARS ── */
+.star-group { display: flex; flex-direction: column; gap: 14px; }
+.stars { display: flex; gap: 8px; }
+.star {
+  font-size: 32px; cursor: pointer; line-height: 1;
+  color: #dde2ed; transition: color .14s, transform .14s;
+  user-select: none; -webkit-user-select: none;
+}
+.star.lit { color: var(--gold); }
+.star:hover { transform: scale(1.22); }
+.star-meta { display: flex; align-items: center; gap: 14px; }
+.star-txt { font-size: 13px; font-weight: 600; color: var(--navy); min-width: 70px; }
+.star-track { flex: 1; height: 5px; background: var(--line); border-radius: 100px; overflow: hidden; }
+.star-bar   { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), #dba93a); border-radius: 100px; transition: width .3s ease; }
+
+/* ── RADIO ── */
+.opts { display: flex; flex-direction: column; gap: 9px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--off); border: 1.5px solid var(--line);
+  border-radius: var(--r2); padding: 14px 16px; cursor: pointer;
+  transition: border-color .18s, background .18s;
+  user-select: none;
+}
+.opt:hover { border-color: #c0ceee; background: #f4f6fd; }
+.opt.on    { border-color: var(--blue); background: var(--blue-bg); }
+.opt input[type=radio] { display: none; }
+.radio-ring {
+  width: 19px; height: 19px; border-radius: 50%;
+  border: 2px solid #c8d0e4; flex-shrink: 0; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .18s; flex-shrink: 0;
+}
+.opt.on .radio-ring { border-color: var(--blue); }
+.radio-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); opacity: 0; transition: opacity .18s; transform: scale(.6); transition: opacity .18s, transform .18s; }
+.opt.on .radio-dot { opacity: 1; transform: scale(1); }
+.opt-main { font-size: 14px; font-weight: 600; color: var(--navy); line-height: 1.3; }
+.opt-sub  { font-size: 12.5px; color: var(--slate-lt); margin-top: 3px; line-height: 1.4; }
+
+/* ── SUBMIT BUTTON ── */
+.submit-wrap { margin-top: 30px; animation: slideUp .4s .28s ease both; }
+.btn-submit {
+  width: 100%; padding: 17px 28px;
+  background: var(--navy); color: #fff; border: none;
+  border-radius: var(--r); font-family: 'Figtree', sans-serif;
+  font-size: 15.5px; font-weight: 700; letter-spacing: .3px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(15,31,61,.28);
+  transition: background .2s, transform .15s, box-shadow .2s;
+}
+.btn-submit::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(140deg, rgba(255,255,255,.08) 0%, transparent 55%);
+  pointer-events: none;
+}
+.btn-submit:hover { background: var(--navy2); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(15,31,61,.32); }
+.btn-submit:active { transform: translateY(0); }
+.btn-arrow { font-size: 20px; transition: transform .2s; }
+.btn-submit:hover .btn-arrow { transform: translateX(4px); }
+
+/* ── DOWNLOAD BAR ── */
+.dl-bar {
+  margin-top: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 18px 22px; box-shadow: var(--shadow-sm);
+  animation: slideUp .4s .34s ease both;
+}
+.dl-info { flex: 1; min-width: 140px; }
+.dl-info p { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+.dl-info span { font-size: 12px; color: var(--slate-lt); }
+.dl-info b { color: var(--blue); }
+.btn-dl {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 20px; border-radius: var(--r2);
+  border: 1.5px solid var(--line); background: var(--off); color: var(--navy);
+  font-family: 'Figtree', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: border-color .18s, background .18s; white-space: nowrap;
+}
+.btn-dl:hover { border-color: var(--navy); background: var(--off2); }
+.btn-dl svg { width: 14px; height: 14px; }
+
+/* ── SUCCESS ── */
+.success-screen { display: none; text-align: center; padding: 70px 20px 50px; }
+.success-screen.show { display: block; animation: slideUp .5s ease both; }
+.success-icon {
+  width: 84px; height: 84px; border-radius: 50%;
+  background: var(--green-bg); border: 2px solid #86efac;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 28px; font-size: 36px; color: var(--green);
+  animation: pop .5s cubic-bezier(.34,1.56,.64,1) both;
+  box-shadow: 0 8px 24px rgba(22,163,74,.15);
+}
+.success-screen h2 {
+  font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700;
+  color: var(--navy); margin-bottom: 12px;
+}
+.success-screen p { font-size: 15px; color: var(--slate); line-height: 1.75; max-width: 360px; margin: 0 auto 32px; }
+.btn-again {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 13px 30px; border-radius: var(--r2);
+  border: 1.5px solid var(--navy); background: transparent; color: var(--navy);
+  font-family: 'Figtree', sans-serif; font-size: 14.5px; font-weight: 600;
+  cursor: pointer; transition: background .18s, transform .15s;
+}
+.btn-again:hover { background: var(--off2); transform: translateY(-1px); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 26px; left: 50%;
+  transform: translateX(-50%) translateY(90px);
+  font-family: 'Figtree', sans-serif; font-size: 13.5px; font-weight: 600;
+  padding: 13px 24px; border-radius: 9px; z-index: 9999;
+  transition: transform .38s cubic-bezier(.34,1.56,.64,1), opacity .25s;
+  opacity: 0; max-width: 94vw; text-align: center;
+  box-shadow: var(--shadow-lg); pointer-events: none;
+}
+.toast.ok  { background: var(--white); border: 1.5px solid #86efac; color: var(--green); }
+.toast.err { background: var(--white); border: 1.5px solid #fca5a5; color: var(--red); }
+.toast.show{ transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── FOOTER ── */
+.footer {
+  background: var(--navy); padding: 22px 28px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.footer-l { font-size: 12.5px; color: rgba(255,255,255,.38); }
+.footer-l strong { color: rgba(255,255,255,.7); font-weight: 600; }
+.footer-r { font-size: 11px; color: rgba(255,255,255,.25); letter-spacing: .5px; }
+
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pop     { from{opacity:0;transform:scale(.4)} to{opacity:1;transform:scale(1)} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="tdot tdot-b"></div>
+    <div class="tdot tdot-g"></div>
+    <span class="tlabel">Project Exhibition · 2025</span>
+  </div>
+  <div class="chips">
+    <span class="chip chip-b">Swift Relief</span>
+    <span class="chip chip-g">Codzen</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-ring" style="width:500px;height:500px;margin-left:-250px;margin-top:-250px"></div>
+  <div class="hero-ring" style="width:800px;height:800px;margin-left:-400px;margin-top:-400px"></div>
+  <div class="hero-eyebrow"><span></span>HR Evaluation Form<span></span></div>
+  <h1>Share Your <em>Feedback</em><br>With Our Teams</h1>
+  <p class="hero-sub">Your evaluation helps us grow. Please take 2 minutes to share your honest assessment.</p>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap">
+  <div class="prog-inner">
+    <div class="prog-top">
+      <span class="prog-lbl">Form Completion</span>
+      <span class="prog-pct" id="pct">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ════ NATIVE FORM — posts directly to Formspree ════ -->
+  <form
+    id="main-form"
+    action="https://formspree.io/f/maqpjkdl"
+    method="POST"
+  >
+    <!-- Formspree special fields -->
+    <input type="hidden" name="_subject" value="Exhibition Feedback Submission">
+    <input type="hidden" name="_next"    value=""><!-- filled by JS -->
+
+    <!-- hidden fields synced from UI -->
+    <input type="hidden" id="h-q1"  name="Q1_Overall_Rating">
+    <input type="hidden" id="h-q3"  name="Q3_Technical_Rating">
+    <input type="hidden" id="h-ts"  name="Timestamp">
+
+    <div id="form-body">
+
+      <!-- S1 -->
+      <div class="sec">
+        <div class="sec-n">1</div>
+        <span class="sec-t">Reviewer Information</span>
+        <div class="sec-l"></div>
+      </div>
+
+      <!-- Personal Details -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Personal Details</div>
+          <span class="badge b-req">Required</span>
+        </div>
+        <div class="row2">
+          <div class="fg">
+            <label>Full Name <span class="req-dot">*</span></label>
+            <input type="text" name="Name" id="f-name" placeholder="e.g. Priya Sharma" autocomplete="name">
+          </div>
+          <div class="fg">
+            <label>Designation <span class="req-dot">*</span></label>
+            <input type="text" name="Designation" id="f-role" placeholder="e.g. HR Manager">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Work Email <span class="opt-note">(optional — used as reply-to)</span></label>
+          <input type="email" name="email" id="f-email" placeholder="priya@company.com" autocomplete="email">
+        </div>
+      </div>
+
+      <!-- Professional Profiles -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Professional Profiles</div>
+          <span class="badge b-opt">All Optional</span>
+        </div>
+        <div class="soc-list">
+          <div class="soc-row">
+            <div class="soc-pre">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="color:#0a66c2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </div>
+            <input type="text" name="LinkedIn" placeholder="linkedin.com/in/your-profile">
+          </div>
+          <div class="soc-row">
+            <div class="soc-pre">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              Twitter / X
+            </div>
+            <input type="text" name="Twitter_X" placeholder="@yourhandle">
+          </div>
+          <div class="soc-row">
+            <div class="soc-pre">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="color:#e1306c"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              Instagram
+            </div>
+            <input type="text" name="Instagram" placeholder="@yourprofile">
+          </div>
+        </div>
+      </div>
+
+      <!-- S2 -->
+      <div class="sec" style="margin-top:36px">
+        <div class="sec-n">2</div>
+        <span class="sec-t">Project Evaluation</span>
+        <div class="sec-l"></div>
+      </div>
+
+      <!-- Q1 Overall -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Overall Presentation Quality</div>
+          <span class="badge b-q">Q 01 / 04</span>
+        </div>
+        <div class="star-group">
+          <div class="stars" id="s1">
+            <span class="star" data-v="1">★</span>
+            <span class="star" data-v="2">★</span>
+            <span class="star" data-v="3">★</span>
+            <span class="star" data-v="4">★</span>
+            <span class="star" data-v="5">★</span>
+          </div>
+          <div class="star-meta">
+            <span class="star-txt" id="st1">Tap to rate</span>
+            <div class="star-track"><div class="star-bar" id="sb1"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 Innovation -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Innovation &amp; Impact Assessment</div>
+          <span class="badge b-q">Q 02 / 04</span>
+        </div>
+        <div class="opts">
+          <label class="opt">
+            <input type="radio" name="Q2_Innovation" value="Highly Innovative">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Highly Innovative</div><div class="opt-sub">Truly unique concept with strong market potential</div></div>
+          </label>
+          <label class="opt">
+            <input type="radio" name="Q2_Innovation" value="Moderately Innovative">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Moderately Innovative</div><div class="opt-sub">Good execution on an existing idea with clear value</div></div>
+          </label>
+          <label class="opt">
+            <input type="radio" name="Q2_Innovation" value="Needs More Originality">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Needs More Originality</div><div class="opt-sub">Concept valid but requires further differentiation</div></div>
+          </label>
+          <label class="opt">
+            <input type="radio" name="Q2_Innovation" value="Too Early to Tell">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Too Early to Tell</div><div class="opt-sub">Needs more development before proper assessment</div></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Q3 Technical -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Technical Depth &amp; Execution</div>
+          <span class="badge b-q">Q 03 / 04</span>
+        </div>
+        <div class="star-group">
+          <div class="stars" id="s3">
+            <span class="star" data-v="1">★</span>
+            <span class="star" data-v="2">★</span>
+            <span class="star" data-v="3">★</span>
+            <span class="star" data-v="4">★</span>
+            <span class="star" data-v="5">★</span>
+          </div>
+          <div class="star-meta">
+            <span class="star-txt" id="st3">Tap to rate</span>
+            <div class="star-track"><div class="star-bar" id="sb3"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 Communication -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Team Communication &amp; Clarity</div>
+          <span class="badge b-q">Q 04 / 04</span>
+        </div>
+        <div class="opts">
+          <label class="opt">
+            <input type="radio" name="Q4_Communication" value="Excellent">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Excellent</div><div class="opt-sub">Crystal clear, confident and well-structured delivery</div></div>
+          </label>
+          <label class="opt">
+            <input type="radio" name="Q4_Communication" value="Good">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Good</div><div class="opt-sub">Mostly clear with only minor gaps</div></div>
+          </label>
+          <label class="opt">
+            <input type="radio" name="Q4_Communication" value="Average">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Average</div><div class="opt-sub">Understandable but needs significant improvement</div></div>
+          </label>
+          <label class="opt">
+            <input type="radio" name="Q4_Communication" value="Needs Work">
+            <div class="radio-ring"><div class="radio-dot"></div></div>
+            <div><div class="opt-main">Needs Work</div><div class="opt-sub">Significant gaps in explanation and delivery</div></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- S3 -->
+      <div class="sec" style="margin-top:36px">
+        <div class="sec-n">3</div>
+        <span class="sec-t">Additional Remarks</span>
+        <div class="sec-l"></div>
+      </div>
+
+      <!-- Comments -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title">Open Feedback &amp; Suggestions</div>
+          <span class="badge b-opt">Optional</span>
+        </div>
+        <textarea name="Comments" placeholder="Share any suggestions, appreciation, or areas the teams should focus on…"></textarea>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="submit-wrap">
+        <button type="submit" class="btn-submit" id="btn-sub">
+          Submit Evaluation
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+    </div><!-- /form-body -->
+  </form><!-- /main-form -->
+
+  <!-- DOWNLOAD BAR (outside form) -->
+  <div class="dl-bar" id="dl-bar">
+    <div class="dl-info">
+      <p>Local Response Backup</p>
+      <span><b id="cnt">0</b> response(s) saved on this device</span>
+    </div>
+    <button class="btn-dl" onclick="downloadExcel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Export Excel
+    </button>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="success-screen" id="success">
+    <div class="success-icon">✓</div>
+    <h2>Feedback Submitted!</h2>
+    <p>Thank you for evaluating our projects. Your insights are invaluable to both teams and will help us improve significantly.</p>
+    <button class="btn-again" onclick="resetAll()">
+      ＋ &nbsp;Submit Another Response
+    </button>
+  </div>
+
+</div><!-- /main -->
+
+<div class="footer">
+  <div class="footer-l">Project Exhibition · <strong>Team Swift Relief</strong> &amp; <strong>Team Codzen</strong></div>
+  <div class="footer-r">Powered by Formspree</div>
+</div>
+
+</div><!-- /page -->
+<div class="toast" id="toast"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ── CONFIG ──────────────────────────── */
+  const STORE = 'tsrcz_v8';
+  const LABELS = ['','Poor','Fair','Good','Very Good','Excellent'];
+  const ratings = { q1: 0, q3: 0 };
+  let responses = JSON.parse(localStorage.getItem(STORE) || '[]');
+  updateCount();
+
+  /* ── PROGRESS ────────────────────────── */
+  function calcProgress() {
+    let done = 0;
+    if (document.getElementById('f-name').value.trim()) done++;
+    if (document.getElementById('f-role').value.trim()) done++;
+    if (ratings.q1) done++;
+    if (document.querySelector('input[name="Q2_Innovation"]:checked')) done++;
+    if (ratings.q3) done++;
+    if (document.querySelector('input[name="Q4_Communication"]:checked')) done++;
+    const pct = Math.round(done / 6 * 100);
+    document.getElementById('prog').style.width = pct + '%';
+    document.getElementById('pct').textContent  = pct + '%';
+  }
+  ['f-name','f-role'].forEach(id =>
+    document.getElementById(id).addEventListener('input', calcProgress)
+  );
+
+  /* ── STARS ───────────────────────────── */
+  function initStars(groupId, key, txtId, barId, hiddenId) {
+    const stars = document.querySelectorAll('#' + groupId + ' .star');
+    stars.forEach(function(s) {
+      s.addEventListener('click', function() {
+        const v = parseInt(s.getAttribute('data-v'));
+        ratings[key] = v;
+        // update visuals
+        stars.forEach(function(x) {
+          x.classList.toggle('lit', parseInt(x.getAttribute('data-v')) <= v);
+        });
+        document.getElementById(txtId).textContent = v + ' / 5 — ' + LABELS[v];
+        document.getElementById(barId).style.width = (v / 5 * 100) + '%';
+        // sync to hidden form field
+        document.getElementById(hiddenId).value = v + '/5 (' + LABELS[v] + ')';
+        calcProgress();
+      });
+    });
+  }
+
+  initStars('s1', 'q1', 'st1', 'sb1', 'h-q1');
+  initStars('s3', 'q3', 'st3', 'sb3', 'h-q3');
+
+  /* ── RADIO STYLING ───────────────────── */
+  document.querySelectorAll('.opt').forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      const nm = opt.querySelector('input[type=radio]').name;
+      document.querySelectorAll('input[name="' + nm + '"]').forEach(function(r) {
+        r.closest('.opt').classList.remove('on');
+      });
+      opt.classList.add('on');
+      opt.querySelector('input[type=radio]').checked = true;
+      calcProgress();
+    });
+  });
+
+  /* ── FORM SUBMIT ─────────────────────── */
+  const form = document.getElementById('main-form');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault(); // we handle manually below
+
+    const name = document.getElementById('f-name').value.trim();
+    const role = document.getElementById('f-role').value.trim();
+    const q2   = document.querySelector('input[name="Q2_Innovation"]:checked');
+    const q4   = document.querySelector('input[name="Q4_Communication"]:checked');
+
+    // Validate
+    if (!name)       { shake('f-name'); showToast('Please enter your full name', 'err'); return; }
+    if (!role)       { shake('f-role'); showToast('Please enter your designation', 'err'); return; }
+    if (!ratings.q1) { showToast('Please rate the overall presentation — Q1 ⭐', 'err'); return; }
+    if (!q2)         { showToast('Please select an option for Innovation — Q2', 'err'); return; }
+    if (!ratings.q3) { showToast('Please rate the technical depth — Q3 ⭐', 'err'); return; }
+    if (!q4)         { showToast('Please select an option for Communication — Q4', 'err'); return; }
+
+    // Set timestamp hidden field
+    document.getElementById('h-ts').value =
+      new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+    // Save locally first
+    saveLocal();
+
+    // Disable button
+    const btn = document.getElementById('btn-sub');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="opacity:.6">Submitting…</span>';
+
+    // Collect all form data as plain object
+    const fd = new FormData(form);
+
+    // POST using XMLHttpRequest — most compatible across all environments
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', form.action, true);
+    xhr.setRequestHeader('Accept', 'application/json');
+
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      btn.disabled = false;
+      btn.innerHTML = 'Submit Evaluation <span class="btn-arrow">→</span>';
+      if (xhr.status >= 200 && xhr.status < 300) {
+        showSuccess();
+      } else {
+        // Already saved locally — tell user
+        showToast('Saved locally ✓ — check your internet connection', 'err');
+      }
+    };
+
+    xhr.onerror = function() {
+      btn.disabled = false;
+      btn.innerHTML = 'Submit Evaluation <span class="btn-arrow">→</span>';
+      showToast('Saved locally ✓ — network unavailable', 'err');
+    };
+
+    xhr.send(fd);
+  });
+
+  /* ── SAVE LOCAL ──────────────────────── */
+  function saveLocal() {
+    const entry = {
+      timestamp:   new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      name:        document.getElementById('f-name').value.trim(),
+      role:        document.getElementById('f-role').value.trim(),
+      email:       document.getElementById('f-email').value.trim(),
+      linkedin:    (document.querySelector('input[name="LinkedIn"]') || {}).value || '',
+      twitter:     (document.querySelector('input[name="Twitter_X"]') || {}).value || '',
+      instagram:   (document.querySelector('input[name="Instagram"]') || {}).value || '',
+      q1:          ratings.q1,
+      q2:          (document.querySelector('input[name="Q2_Innovation"]:checked') || {}).value || '',
+      q3:          ratings.q3,
+      q4:          (document.querySelector('input[name="Q4_Communication"]:checked') || {}).value || '',
+      comments:    (document.querySelector('textarea[name="Comments"]') || {}).value || '',
+    };
+    responses.push(entry);
+    localStorage.setItem(STORE, JSON.stringify(responses));
+    updateCount();
+  }
+
+  /* ── SUCCESS ─────────────────────────── */
+  function showSuccess() {
+    document.getElementById('form-body').style.display  = 'none';
+    document.getElementById('dl-bar').style.display     = 'none';
+    document.getElementById('submit-wrap') && (document.querySelector('.submit-wrap').style.display = 'none');
+    document.getElementById('success').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  window.resetAll = function() {
+    document.getElementById('success').classList.remove('show');
+    document.getElementById('form-body').style.display  = '';
+    document.getElementById('dl-bar').style.display     = '';
+    form.reset();
+    ratings.q1 = 0; ratings.q3 = 0;
+    // reset stars
+    ['s1','s3'].forEach(function(sid, i) {
+      document.querySelectorAll('#' + sid + ' .star').forEach(s => s.classList.remove('lit'));
+      document.getElementById(['st1','st3'][i]).textContent = 'Tap to rate';
+      document.getElementById(['sb1','sb3'][i]).style.width = '0%';
+    });
+    // reset hidden
+    document.getElementById('h-q1').value = '';
+    document.getElementById('h-q3').value = '';
+    // reset radio styles
+    document.querySelectorAll('.opt').forEach(o => o.classList.remove('on'));
+    calcProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /* ── EXCEL DOWNLOAD ──────────────────── */
+  window.downloadExcel = function() {
+    if (!responses.length) { showToast('No local responses to export yet', 'err'); return; }
+    const headers = [
+      'Timestamp','Name','Designation','Email',
+      'LinkedIn','Twitter/X','Instagram',
+      'Q1 Overall','Q2 Innovation','Q3 Technical','Q4 Communication','Comments'
+    ];
+    const rows = responses.map(r => [
+      r.timestamp, r.name, r.role, r.email||'—',
+      r.linkedin||'—', r.twitter||'—', r.instagram||'—',
+      r.q1, r.q2, r.q3, r.q4, r.comments||'—'
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    ws['!cols'] = [
+      {wch:22},{wch:20},{wch:18},{wch:26},{wch:32},
+      {wch:16},{wch:16},{wch:12},{wch:24},{wch:12},{wch:22},{wch:40}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Feedback');
+    XLSX.writeFile(wb, 'Exhibition_Feedback_' +
+      new Date().toLocaleDateString('en-IN').replace(/\//g,'-') + '.xlsx');
+  };
+
+  /* ── HELPERS ─────────────────────────── */
+  function updateCount() {
+    document.getElementById('cnt').textContent = responses.length;
+  }
+
+  function showToast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = (type === 'ok' ? '✓  ' : '✕  ') + msg;
+    el.className = 'toast ' + type;
+    requestAnimationFrame(() => el.classList.add('show'));
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 4200);
+  }
+
+  function shake(id) {
+    const el = document.getElementById(id);
+    el.classList.add('shake');
+    el.focus();
+    el.animate(
+      [{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}],
+      {duration:280, iterations:2}
+    );
+    setTimeout(() => el.classList.remove('shake'), 1500);
+  }
+
+}); // end DOMContentLoaded
+</script>
+</body>
+</html>
